@@ -1,0 +1,565 @@
+/* ==========================================================================
+   CSS Custom Properties (Design Tokens)
+   ========================================================================== */
+
+:root {
+  /* Typography */
+  --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  /* Spacing scale — multiples of 4px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Color tokens */
+  --color-bg:          #f0f2f5;
+  --color-surface:     #ffffff;
+  --color-primary:     #2563eb;
+  --color-text:        #1e293b;
+  --color-text-muted:  #64748b;
+  --color-error:       #dc2626;
+  --color-warning:     #d97706;
+  --color-border:      #cbd5e1;
+}
+
+/* ==========================================================================
+   Box-Sizing Reset
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Base / Body
+   ========================================================================== */
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: 16px;           /* body text baseline */
+  line-height: 1.5;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+p {
+  font-size: 16px;
+  margin: 0 0 var(--space-4);
+}
+
+/* ==========================================================================
+   Typography — Headings
+   Widget headings must be at least 4px larger than body text (≥ 20px)
+   ========================================================================== */
+
+h1 {
+  font-size: 32px;
+  margin: 0 0 var(--space-4);
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 20px;   /* 16px body + 4px = 20px minimum */
+  margin: 0 0 var(--space-3);
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: 18px;
+  margin: 0 0 var(--space-2);
+  line-height: 1.3;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 16px;
+  margin: 0 0 var(--space-2);
+  line-height: 1.3;
+}
+
+/* ==========================================================================
+   Storage Warning Banner
+   ========================================================================== */
+
+#storage-warning-banner {
+  background-color: var(--color-warning);
+  color: #ffffff;
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Dashboard Grid Layout  (Req 11.2, 11.4)
+   Four widget sections arranged in a 2×2 grid on desktop,
+   collapsing to a single column on narrow viewports.
+   ========================================================================== */
+
+body {
+  /* Extend the body reset to also act as the grid host */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: auto;
+  gap: var(--space-6);
+  align-items: start;
+  padding: var(--space-6);
+  /* Reserve the first full-width row for the storage banner */
+  grid-template-areas:
+    "banner  banner"
+    "greet   timer"
+    "todo    links";
+}
+
+#storage-warning-banner {
+  grid-area: banner;
+}
+
+#greeting-widget  { grid-area: greet; }
+#timer-widget     { grid-area: timer; }
+#todo-widget      { grid-area: todo;  }
+#quicklinks-widget { grid-area: links; }
+
+/* ==========================================================================
+   Widget Cards  (Req 11.4)
+   Consistent padding, border-radius, surface colour, and subtle shadow
+   applied to every <section> on the dashboard.
+   ========================================================================== */
+
+section {
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  padding: var(--space-6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10),
+              0 4px 12px rgba(0, 0, 0, 0.06);
+  /* Ensure cards don't collapse when their content is short */
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Responsive — single column on narrow viewports  (Req 11.2)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "banner"
+      "greet"
+      "timer"
+      "todo"
+      "links";
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+}
+
+/* ==========================================================================
+   Greeting Widget  (Req 1.1, 2.8)
+   ========================================================================== */
+
+#greeting-text {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+}
+
+#clock-display {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--space-2);
+  line-height: 1.1;
+}
+
+#date-display {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Focus Timer Widget  (Req 2.8, 2.9)
+   ========================================================================== */
+
+#timer-display {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  margin: 0 0 var(--space-5);
+  line-height: 1.1;
+}
+
+/* Button row */
+#timer-widget .timer-controls,
+#timer-widget > button {
+  /* Buttons are direct children — wrap them in a flex row */
+  display: inline-flex; /* fallback for unwrapped buttons */
+}
+
+/* Flex container for the three timer buttons */
+#timer-widget {
+  display: flex;
+  flex-direction: column;
+}
+
+#timer-start,
+#timer-stop,
+#timer-reset {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: var(--space-3) var(--space-5);
+  border-radius: 6px;
+  flex: 1;
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+#timer-start:hover,
+#timer-stop:hover,
+#timer-reset:hover {
+  filter: brightness(0.92);
+}
+
+#timer-start:active,
+#timer-stop:active,
+#timer-reset:active {
+  filter: brightness(0.85);
+}
+
+#timer-start {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+#timer-stop {
+  background-color: var(--color-warning);
+  color: #ffffff;
+}
+
+#timer-reset {
+  background-color: #e2e8f0;
+  color: var(--color-text);
+}
+
+/* Flex row that groups the three buttons together */
+.timer-button-row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* Timer alert notice */
+#timer-alert {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+  margin-top: var(--space-4);
+}
+
+/* General button baseline (covers all widget buttons) */
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   To-Do List Widget  (Req 5.2, 5.3, 6.2, 3.3)
+   ========================================================================== */
+
+/* Task input row — input and button side by side */
+#todo-widget .task-input-row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+#task-input {
+  flex-grow: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  outline-offset: 2px;
+}
+
+#task-input:focus {
+  outline: 2px solid var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+#task-add-btn {
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: var(--font-family);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 44px;
+}
+
+#task-add-btn:hover {
+  background-color: #1d4ed8;
+}
+
+#task-add-btn:active {
+  background-color: #1e40af;
+}
+
+/* Inline error message  (Req 6.2) */
+#task-input-error {
+  display: block;
+  color: var(--color-error);
+  font-size: 14px;
+  margin-bottom: var(--space-2);
+}
+
+/* Task list container */
+#task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Individual task rows  (Req 5.2) — minimum 44px touch target */
+#task-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+#task-list li:last-child {
+  border-bottom: none;
+}
+
+/* Task description text fills available space */
+#task-list li .task-desc {
+  flex-grow: 1;
+  font-size: 16px;
+  word-break: break-word;
+}
+
+/* Completed task state  (Req 5.3) */
+#task-list li.completed {
+  opacity: 0.6;
+}
+
+#task-list li.completed .task-desc {
+  text-decoration: line-through;
+}
+
+/* Pending-deletion task state  (Req 3.3) */
+#task-list li.pending-delete {
+  color: var(--color-text-muted);
+  font-style: italic;
+  background-color: #f8fafc;
+}
+
+#task-list li.pending-delete .task-desc {
+  text-decoration: none; /* don't conflict with completed style */
+}
+
+/* Task action buttons (edit / delete / undo)  (Req 5.2) */
+#task-list li button {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-family: var(--font-family);
+  cursor: pointer;
+  line-height: 1;
+}
+
+#task-list li button:hover {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border-color: #94a3b8;
+}
+
+#task-list li button:active {
+  background-color: #e2e8f0;
+}
+
+/* Undo button — slightly highlighted to draw attention during delete window */
+#task-list li button.undo-btn {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+#task-list li button.undo-btn:hover {
+  background-color: #eff6ff;
+}
+
+/* ==========================================================================
+   Quick Links Widget  (Req 9.2, 10.3)
+   ========================================================================== */
+
+/* Add-link form — label input, URL input, and button in a flex row */
+#quicklinks-widget .add-link-form {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+#ql-label-input,
+#ql-url-input {
+  flex: 1 1 120px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  outline-offset: 2px;
+}
+
+#ql-label-input:focus,
+#ql-url-input:focus {
+  outline: 2px solid var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+#ql-add-btn {
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: var(--font-family);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 44px;
+}
+
+#ql-add-btn:hover {
+  background-color: #1d4ed8;
+}
+
+#ql-add-btn:active {
+  background-color: #1e40af;
+}
+
+/* Inline error message — mirrors #task-input-error  (Req 9.2) */
+#ql-input-error {
+  display: block;
+  color: var(--color-error);
+  font-size: 14px;
+  margin-bottom: var(--space-2);
+}
+
+/* Links panel — wrapping flex row of link+delete pairs */
+#quick-links-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Individual quick-link button  (Req 10.3 — truncate overflow) */
+.quick-link-btn {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 6px;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  font-size: 14px;
+  font-family: var(--font-family);
+  font-weight: 500;
+  cursor: pointer;
+  min-height: 36px;
+  transition: background-color 0.15s ease;
+}
+
+.quick-link-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.quick-link-btn:active {
+  background-color: #1e40af;
+}
+
+/* Delete button beside each quick-link  (small, compact) */
+.ql-delete-btn {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-family: var(--font-family);
+  cursor: pointer;
+  min-height: 36px;
+  line-height: 1;
+  align-self: center;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.ql-delete-btn:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+/* Wrapper that groups one link button with its delete button */
+.quick-link-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ==========================================================================
+   Storage Warning Banner — sticky enhancement  (Req 8.3)
+   Base colours/typography already declared above; extend here.
+   The `hidden` HTML attribute hides it by default;
+   JS removes that attribute to reveal the banner.
+   ========================================================================== */
+
+#storage-warning-banner {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}

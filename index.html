@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do Life Dashboard</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div id="storage-warning-banner" hidden>
+      Storage unavailable — data will not be saved this session.
+    </div>
+
+    <section id="greeting-widget">
+      <h2>Greeting</h2>
+      <p id="greeting-text"></p>
+      <p id="clock-display"></p>
+      <p id="date-display"></p>
+    </section>
+
+    <section id="timer-widget">
+      <h2>Focus Timer</h2>
+      <p id="timer-display"></p>
+      <div class="timer-button-row">
+        <button id="timer-start">Start</button>
+        <button id="timer-stop">Stop</button>
+        <button id="timer-reset">Reset</button>
+      </div>
+      <p id="timer-alert" hidden></p>
+    </section>
+
+    <section id="todo-widget">
+      <h2>To-Do List</h2>
+      <input id="task-input" maxlength="200" type="text" placeholder="Add a new task..." />
+      <button id="task-add-btn">Add</button>
+      <p id="task-input-error" hidden></p>
+      <ul id="task-list"></ul>
+    </section>
+
+    <section id="quicklinks-widget">
+      <h2>Quick Links</h2>
+      <input id="ql-label-input" maxlength="50" type="text" placeholder="Label" />
+      <input id="ql-url-input" maxlength="2048" type="url" placeholder="URL (e.g. https://...)" />
+      <button id="ql-add-btn">Add Link</button>
+      <p id="ql-input-error" hidden></p>
+      <div id="quick-links-panel"></div>
+    </section>
+
+    <script src="js/app.js" defer></script>
+  </body>
+</html>
