@@ -96,12 +96,12 @@ Implement the To-Do Life Dashboard as three static files (`index.html`, `css/sty
     - _Requirements: 1.1, 1.2_
 
   
-- [ ] 6. Implement the Focus Timer (`js/app.js` — Part 3)
-  - [ ] 6.1 Implement `formatTime(seconds)` pure function
+- [x] 6. Implement the Focus Timer (`js/app.js` — Part 3)
+  - [x] 6.1 Implement `formatTime(seconds)` pure function
     - Returns `MM:SS` string with zero-padded minutes and seconds
     - _Requirements: 2.9_
 
-  - [~] 6.2 Implement `initTimer()`, `startTimer()`, `stopTimer()`, `resetTimer()`
+  - [x] 6.2 Implement `initTimer()`, `startTimer()`, `stopTimer()`, `resetTimer()`
     - Module-scoped state: `let timerSecondsLeft`, `let timerRunning`, `let timerIntervalId`, `let timerComplete`
     - `initTimer()`: sets seconds to 1500, clears running/complete flags, updates `#timer-display` via `formatTime`
     - `startTimer()`: guards against `timerRunning` and `timerComplete`; sets `timerRunning = true`, starts `setInterval(onTimerTick, 1000)`
@@ -109,78 +109,78 @@ Implement the To-Do Life Dashboard as three static files (`index.html`, `css/sty
     - `resetTimer()`: clears interval, calls `initTimer()`, hides `#timer-alert`
     - _Requirements: 2.1, 2.2, 2.4, 2.5, 2.6, 2.10, 2.11_
 
-  - [~] 6.3 Implement `onTimerTick()` and `onTimerComplete()`
+  - [x] 6.3 Implement `onTimerTick()` and `onTimerComplete()`
     - `onTimerTick()`: decrements `timerSecondsLeft`; if > 0 updates display; if === 0 calls `onTimerComplete()`
     - `onTimerComplete()`: clears interval, sets `timerRunning = false`, `timerComplete = true`, shows `#timer-alert` with "Time's up!" text
     - _Requirements: 2.3, 2.7, 2.8_
 
-  - [~] 6.4 Wire Start/Stop/Reset button click listeners to `initTimer`/`startTimer`/`stopTimer`/`resetTimer`
+  - [x] 6.4 Wire Start/Stop/Reset button click listeners to `initTimer`/`startTimer`/`stopTimer`/`resetTimer`
     - Attach `click` event listeners in the bootstrap section (or a dedicated `initTimerUI()` call)
     - _Requirements: 2.2, 2.4, 2.6_
 
 
-- [ ] 7. Implement To-Do List CRUD (`js/app.js` — Part 4)
-  - [~] 7.1 Implement `createTaskRow(task)` and `renderTasks()`
+- [x] 7. Implement To-Do List CRUD (`js/app.js` — Part 4)
+  - [x] 7.1 Implement `createTaskRow(task)` and `renderTasks()`
     - `createTaskRow(task)`: builds an `<li>` with a checkbox (`data-action="toggle"`, `data-task-id`), description `<span>`, Edit button (`data-action="edit"`), and Delete button (`data-action="delete"`); add `pending-delete` CSS class when task is in `pendingDeletes`; add `completed` CSS class when `task.completed === true`
     - `renderTasks()`: clears `#task-list` innerHTML, iterates `tasks[]`, appends each row; if `editingTaskId` is set, renders that row in edit mode (inline `<input>` pre-filled + Save/Cancel buttons)
     - _Requirements: 3.2, 4.2, 5.2, 6.2_
 
-  - [~] 7.2 Implement `addTask(description)` and Enter-key / Add-button trigger
+  - [x] 7.2 Implement `addTask(description)` and Enter-key / Add-button trigger
     - Validate: trim, reject empty (show `#task-input-error`), reject > 200 chars
     - On success: generate `id` via `crypto.randomUUID()` with `Date.now().toString()` fallback, push `TaskItem` to `tasks[]`, call `saveTasks()`, call `renderTasks()`, clear `#task-input`, hide error
     - Attach `click` listener on `#task-add-btn` and `keydown` (Enter) listener on `#task-input`
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 7.5_
 
-  - [~] 7.3 Implement `beginEditTask(taskId)`, `confirmEditTask(taskId, newText)`, `cancelEditTask()`
+  - [x] 7.3 Implement `beginEditTask(taskId)`, `confirmEditTask(taskId, newText)`, `cancelEditTask()`
     - `beginEditTask`: cancels any open edit, sets `editingTaskId`, calls `renderTasks()`
     - `confirmEditTask`: trims `newText`; if empty calls `renderTasks()` (restores original); if valid, updates `tasks[]` entry, calls `saveTasks()`, clears `editingTaskId`, calls `renderTasks()`
     - `cancelEditTask`: sets `editingTaskId = null`, calls `renderTasks()`
     - Handle Enter (confirm) and Escape (cancel) key events on the inline input
     - _Requirements: 4.2, 4.3, 4.4, 4.5, 4.6_
 
-  - [~] 7.4 Implement `toggleComplete(taskId)` with storage-failure revert
+  - [x] 7.4 Implement `toggleComplete(taskId)` with storage-failure revert
     - Flip `task.completed` in `tasks[]`; call `saveTasks()`; on `catch`: revert the flip, call `renderTasks()`, display inline error near the task row
     - _Requirements: 5.2, 5.3, 5.4, 5.5_
 
-  - [~] 7.5 Implement `deleteTask(taskId)` and `undoDelete(taskId)`
+  - [x] 7.5 Implement `deleteTask(taskId)` and `undoDelete(taskId)`
     - `deleteTask`: add task to `pendingDeletes` map (value = `setTimeout` ID); apply pending-delete visual class; re-render row; after 5 s: remove from `tasks[]`, call `saveTasks()`, call `renderTasks()`
     - `undoDelete`: clear timeout via `pendingDeletes.get(taskId)`, remove from map, call `renderTasks()` to restore normal appearance
     - _Requirements: 6.2, 6.3, 6.4, 6.5, 7.5_
 
-  - [~] 7.6 Wire To-Do List event delegation on `#task-list`
+  - [x] 7.6 Wire To-Do List event delegation on `#task-list`
     - Single `click` listener on `#task-list`; dispatch by `event.target.closest('[data-action]').dataset.action`: `"toggle"` → `toggleComplete`, `"edit"` → `beginEditTask`, `"delete"` → `deleteTask`, `"undo"` → `undoDelete`, `"save"` → `confirmEditTask`, `"cancel"` → `cancelEditTask`
     - _Requirements: 3.2, 4.1, 5.1, 6.1_
 
-- [~] 8. Checkpoint — To-Do List fully functional
+- [x] 8. Checkpoint — To-Do List fully functional
   - Ensure all task CRUD tests pass and the undo timer behaves correctly. Confirm no global state leaks between test cases.
 
-- [ ] 9. Implement Quick Links management (`js/app.js` — Part 5)
-  - [~] 9.1 Implement `normaliseUrl(url)` pure function
+- [x] 9. Implement Quick Links management (`js/app.js` — Part 5)
+  - [x] 9.1 Implement `normaliseUrl(url)` pure function
     - If `url` already starts with `"http://"` or `"https://"`, return it unchanged
     - Otherwise prepend `"https://"`
     - _Requirements: 8.4_
 
-  - [~] 9.2 Implement `renderQuickLinks()`
+  - [x] 9.2 Implement `renderQuickLinks()`
     - Clear `#quick-links-panel` innerHTML; iterate `quickLinks[]`; for each item create a `<button>` with truncation class (`data-action="open"`, `data-link-id`) and a Delete icon button (`data-action="delete-link"`, `data-link-id`)
     - _Requirements: 8.7, 9.2_
 
-  - [~] 9.3 Implement `addQuickLink(label, url)`
+  - [x] 9.3 Implement `addQuickLink(label, url)`
     - Validate label (non-empty, ≤ 50 chars) and URL (non-empty, ≤ 2048 chars); show `#ql-input-error` on failure
     - Call `normaliseUrl(url)`; call `saveQuickLinks()` first; only on success push `QuickLinkItem` to `quickLinks[]` and call `renderQuickLinks()`; on `catch`: show error, do NOT push to array
     - Attach `click` listener on `#ql-add-btn`
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-  - [~] 9.4 Implement `deleteQuickLink(linkId)` and `openQuickLink(url)`
+  - [x] 9.4 Implement `deleteQuickLink(linkId)` and `openQuickLink(url)`
     - `deleteQuickLink`: filter `quickLinks[]`, call `saveQuickLinks()`, call `renderQuickLinks()`
     - `openQuickLink`: call `window.open(url, '_blank', 'noopener,noreferrer')`; if return value is `null`, show pop-up-blocked notice near the panel
     - _Requirements: 8.6, 9.1, 9.3_
 
-  - [~] 9.5 Wire Quick Links event delegation on `#quick-links-panel`
+  - [x] 9.5 Wire Quick Links event delegation on `#quick-links-panel`
     - Single `click` listener; dispatch by `data-action`: `"open"` → `openQuickLink`, `"delete-link"` → `deleteQuickLink`
     - _Requirements: 8.6, 9.1_
 
-- [ ] 10. Bootstrap and full integration (`js/app.js` — Part 6)
-  - [~] 10.1 Implement the `DOMContentLoaded` bootstrap block
+- [x] 10. Bootstrap and full integration (`js/app.js` — Part 6)
+  - [x] 10.1 Implement the `DOMContentLoaded` bootstrap block
     - Call in sequence: `loadTasks()`, `loadQuickLinks()`, `startClock()`, `initTimer()`, `renderTasks()`, `renderQuickLinks()`
     - Attach all button/input event listeners that are not already attached inside individual init functions (timer buttons, Add Task, Add Quick Link)
     - _Requirements: 7.1, 8.7, 2.1, 3.1, 8.1_
@@ -188,13 +188,13 @@ Implement the To-Do Life Dashboard as three static files (`index.html`, `css/sty
  
 
 - [ ] 11. Set up Jasmine standalone and fast-check test runner files
-  - [~] 11.1 Create `tests/` directory structure with Jasmine standalone HTML runner
+  - [x] 11.1 Create `tests/` directory structure with Jasmine standalone HTML runner
     - Download Jasmine standalone distribution into `tests/lib/jasmine/`
     - Download `fast-check` UMD build into `tests/lib/fast-check/`
     - Create `tests/SpecRunner.html` that loads Jasmine, fast-check, a test-compatible stub of `app.js` exports, and all spec files
     - _Requirements: 11.1 (no build tools), design testing strategy_
 
-  - [~] 11.2 Create spec files for all test groups
+  - [ ] 11.2 Create spec files for all test groups
     - `tests/spec/storage.spec.js` — storage helpers and serialization properties (tasks 3.4–3.7)
     - `tests/spec/greeting.spec.js` — greeting widget unit + property tests (tasks 5.3–5.4)
     - `tests/spec/timer.spec.js` — focus timer unit tests (task 6.5)

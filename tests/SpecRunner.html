@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do Life Dashboard — Test Suite</title>
+
+  <!-- Jasmine standalone (CSS) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jasmine/5.3.0/jasmine.css">
+
+  <!-- Jasmine standalone (JS) — boot order matters -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jasmine/5.3.0/jasmine.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jasmine/5.3.0/jasmine-html.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jasmine/5.3.0/boot0.js"></script>
+
+  <!-- fast-check (property-based testing, UMD build exposes window.fc) -->
+  <script src="https://cdn.jsdelivr.net/npm/fast-check@3.22.0/lib/bundle/fast-check.min.js"></script>
+
+  <!-- Application code (exposes window.__appExports when Jasmine is present) -->
+  <script src="../js/app.js" defer></script>
+
+  <!-- Jasmine boot1 — must come after app.js and specs are loaded -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jasmine/5.3.0/boot1.js" defer></script>
+
+  <!-- Spec files -->
+  <script src="spec/storage.spec.js" defer></script>
+  <script src="spec/greeting.spec.js" defer></script>
+  <script src="spec/timer.spec.js" defer></script>
+  <script src="spec/todo.spec.js" defer></script>
+  <script src="spec/quicklinks.spec.js" defer></script>
+  <script src="spec/integration.spec.js" defer></script>
+</head>
+<body>
+  <!-- Jasmine renders results here -->
+</body>
+</html>
