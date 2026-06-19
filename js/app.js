@@ -4,21 +4,28 @@
 
 const STORAGE_KEY_TASKS = 'tdl_tasks';
 const STORAGE_KEY_LINKS = 'tdl_quicklinks';
+const STORAGE_KEY_USERNAME = 'tdl_username';
+const STORAGE_KEY_THEME = 'tdl_theme';
+const STORAGE_KEY_TIMER_DURATION = 'tdl_timer_duration';
 
-const TIMER_DURATION     = 1500; // 25 * 60 seconds
-const TASK_MAX_LEN       = 200;
+const TASK_MAX_LEN = 200;
 const LINK_LABEL_MAX_LEN = 50;
-const LINK_URL_MAX_LEN   = 2048;
-const DELETE_UNDO_MS     = 5000; // 5-second undo window
+const LINK_URL_MAX_LEN = 2048;
+const DELETE_UNDO_MS = 5000; // 5-second undo window
 
 // ============================================================
 // STATE
 // ============================================================
 
-let tasks       = [];
-let quickLinks  = [];
+let tasks = [];
+let quickLinks = [];
+let isSorted = false;
+let sortedTasksSnapshot = null;
 
-const pendingDeletes = new Map(); // Map<taskId, timeoutId>
+// const pendingDeletes = new Map(); // Map<taskId, timeoutId>
+const pendingDeletes = new Map();
+// Map<taskId, { timeoutId, intervalId, remaining }>
+
 
 let editingTaskId = null; // id of the task currently in edit mode, or null
 
@@ -76,7 +83,7 @@ function loadTasks() {
     tasks = parsed.filter(isValidTaskItem);
   } catch (e) {
     tasks = [];
-    try { localStorage.removeItem(STORAGE_KEY_TASKS); } catch (_) {}
+    try { localStorage.removeItem(STORAGE_KEY_TASKS); } catch (_) { }
   }
 }
 
@@ -98,7 +105,7 @@ function loadQuickLinks() {
     quickLinks = parsed.filter(isValidQuickLinkItem);
   } catch (e) {
     quickLinks = [];
-    try { localStorage.removeItem(STORAGE_KEY_LINKS); } catch (_) {}
+    try { localStorage.removeItem(STORAGE_KEY_LINKS); } catch (_) { }
   }
 }
 
@@ -111,6 +118,76 @@ function loadQuickLinks() {
  * @param {number} hour - Integer in range [0, 23]
  * @returns {"Good Morning"|"Good Afternoon"|"Good Evening"|"Good Night"}
  */
+
+function initTheme() {
+  const savedTheme =
+    localStorage.getItem(STORAGE_KEY_THEME) || 'light';
+
+  applyTheme(savedTheme);
+
+  const btn = document.getElementById('theme-toggle');
+
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    const isDark =
+      document.body.classList.contains('dark-mode');
+
+    const nextTheme =
+      isDark ? 'light' : 'dark';
+
+    applyTheme(nextTheme);
+
+    localStorage.setItem(
+      STORAGE_KEY_THEME,
+      nextTheme
+    );
+  });
+}
+
+function initUsername() {
+  let username = localStorage.getItem(STORAGE_KEY_USERNAME);
+
+  if (!username) {
+    username = prompt("What's your name?");
+
+    if (!username || username.trim() === '') {
+      username = 'Guest';
+    }
+
+    localStorage.setItem(
+      STORAGE_KEY_USERNAME,
+      username.trim()
+    );
+  }
+
+  const greetingTitle =
+    document.getElementById('username-greeting');
+
+  if (greetingTitle) {
+    greetingTitle.textContent =
+      `Hola, Señor ${username}`;
+  }
+}
+
+function applyTheme(theme) {
+  const btn = document.getElementById('theme-toggle');
+
+  if (theme === 'dark') {
+    document.body.classList.add('dark-mode');
+
+    if (btn) {
+      btn.textContent = '☀️ Light Mode';
+    }
+  } else {
+    document.body.classList.remove('dark-mode');
+
+    if (btn) {
+      btn.textContent = '🌙 Dark Mode';
+    }
+  }
+}
+
 function getGreeting(hour) {
   if (hour >= 5 && hour <= 11) return 'Guten Morgen';
   if (hour >= 12 && hour <= 17) return 'Guten Tag';
@@ -125,8 +202,8 @@ function getGreeting(hour) {
  * - #date-display   → "Weekday, DD Month YYYY"
  */
 function updateClock() {
-  const now     = new Date();
-  const hour    = now.getHours();
+  const now = new Date();
+  const hour = now.getHours();
   const minutes = now.getMinutes();
 
   // HH:MM
@@ -135,22 +212,22 @@ function updateClock() {
   const timeStr = `${hh}:${mm}`;
 
   // "Weekday, DD Month YYYY"
-  const weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months   = ['January','February','March','April','May','June',
-                    'July','August','September','October','November','December'];
-  const weekday  = weekdays[now.getDay()];
-  const day      = now.getDate();
-  const month    = months[now.getMonth()];
-  const year     = now.getFullYear();
-  const dateStr  = `${weekday}, ${day} ${month} ${year}`;
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  const weekday = weekdays[now.getDay()];
+  const day = now.getDate();
+  const month = months[now.getMonth()];
+  const year = now.getFullYear();
+  const dateStr = `${weekday}, ${day} ${month} ${year}`;
 
   const greetingEl = document.getElementById('greeting-text');
-  const clockEl    = document.getElementById('clock-display');
-  const dateEl     = document.getElementById('date-display');
+  const clockEl = document.getElementById('clock-display');
+  const dateEl = document.getElementById('date-display');
 
   if (greetingEl) greetingEl.textContent = getGreeting(hour);
-  if (clockEl)    clockEl.textContent    = timeStr;
-  if (dateEl)     dateEl.textContent     = dateStr;
+  if (clockEl) clockEl.textContent = timeStr;
+  if (dateEl) dateEl.textContent = dateStr;
 }
 
 /**
@@ -166,16 +243,43 @@ function startClock() {
 // ============================================================
 
 // --- Timer state ---
+let timerDuration = 1500; // 25 * 60
 let timerSecondsLeft;
 let timerRunning;
 let timerIntervalId;
 let timerComplete;
+
 
 /**
  * Pure function — formats a duration in seconds as a zero-padded MM:SS string.
  * @param {number} seconds - Non-negative integer number of seconds
  * @returns {string} Zero-padded time string, e.g. "25:00", "01:30", "00:59"
  */
+
+function loadTimerSettings() {
+  const saved =
+    localStorage.getItem(STORAGE_KEY_TIMER_DURATION);
+
+  if (!saved) return;
+
+  const minutes = parseInt(saved);
+
+  if (!isNaN(minutes) && minutes > 0) {
+    timerDuration = minutes * 60;
+  }
+}
+
+function saveTimerSettings(minutes) {
+  localStorage.setItem(
+    STORAGE_KEY_TIMER_DURATION,
+    minutes
+  );
+
+  timerDuration = minutes * 60;
+
+  resetTimer();
+}
+
 function formatTime(seconds) {
   const mm = Math.floor(seconds / 60);
   const ss = seconds % 60;
@@ -187,10 +291,10 @@ function formatTime(seconds) {
  * Resets all state variables and updates the display.
  */
 function initTimer() {
-  timerSecondsLeft = TIMER_DURATION; // 1500
-  timerRunning     = false;
-  timerComplete    = false;
-  timerIntervalId  = null;
+  timerSecondsLeft = timerDuration; // 1500
+  timerRunning = false;
+  timerComplete = false;
+  timerIntervalId = null;
 
   const display = document.getElementById('timer-display');
   if (display) {
@@ -204,7 +308,7 @@ function initTimer() {
 function startTimer() {
   if (timerRunning || timerComplete) return;
 
-  timerRunning    = true;
+  timerRunning = true;
   timerIntervalId = setInterval(onTimerTick, 1000);
 }
 
@@ -215,7 +319,7 @@ function stopTimer() {
   if (!timerRunning) return;
 
   clearInterval(timerIntervalId);
-  timerRunning    = false;
+  timerRunning = false;
   timerIntervalId = null;
 }
 
@@ -259,8 +363,8 @@ function onTimerTick() {
  */
 function onTimerComplete() {
   clearInterval(timerIntervalId);
-  timerRunning    = false;
-  timerComplete   = true;
+  timerRunning = false;
+  timerComplete = true;
   timerIntervalId = null;
 
   const alert = document.getElementById('timer-alert');
@@ -276,12 +380,32 @@ function onTimerComplete() {
  */
 function initTimerUI() {
   const startBtn = document.getElementById('timer-start');
-  const stopBtn  = document.getElementById('timer-stop');
+  const stopBtn = document.getElementById('timer-stop');
   const resetBtn = document.getElementById('timer-reset');
+  const minutesInput = document.getElementById('timer-minutes');
 
   if (startBtn) startBtn.addEventListener('click', startTimer);
-  if (stopBtn)  stopBtn.addEventListener('click', stopTimer);
+  if (stopBtn) stopBtn.addEventListener('click', stopTimer);
   if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+  if (minutesInput) {
+
+    minutesInput.value =
+      timerDuration / 60;
+
+    minutesInput.addEventListener('change', () => {
+
+      const minutes =
+        parseInt(minutesInput.value);
+
+      if (
+        !isNaN(minutes) &&
+        minutes >= 1 &&
+        minutes <= 180
+      ) {
+        saveTimerSettings(minutes);
+      }
+    });
+  }
 }
 
 // ============================================================
@@ -303,8 +427,20 @@ function createTaskRow(task) {
     li.classList.add('completed');
   }
 
+  // if (pendingDeletes.has(task.id)) {
+  //   li.classList.add('pending-delete');
+  // }
+
   if (pendingDeletes.has(task.id)) {
-    li.classList.add('pending-delete');
+
+    const pending = pendingDeletes.get(task.id);
+
+    if (pending) {
+      const pendingText = document.createElement('span');
+      pendingText.className = 'pending-delete-label';
+      pendingText.textContent = `Deleting in ${pending.remaining}s...`;
+      li.appendChild(pendingText);
+    }
   }
 
   if (editingTaskId === task.id) {
@@ -377,7 +513,9 @@ function renderTasks() {
 
   taskList.innerHTML = '';
 
-  for (const task of tasks) {
+  const listToRender = sortedTasksSnapshot ?? tasks;
+
+  for (const task of listToRender) {
     taskList.appendChild(createTaskRow(task));
   }
 }
@@ -412,8 +550,23 @@ function addTask(description) {
   const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
     ? crypto.randomUUID()
     : Date.now().toString();
+  const normalized = trimmed.toLowerCase();
+
+  const isDuplicate = tasks.some(task =>
+    task.description.trim().toLowerCase() === normalized
+  );
+
+  if (isDuplicate) {
+    const errorEl = document.getElementById('task-input-error');
+    if (errorEl) {
+      errorEl.textContent = 'Task already exists';
+      errorEl.removeAttribute('hidden');
+    }
+    return;
+  }
 
   tasks.push({ id, description: trimmed, completed: false });
+  sortedTasksSnapshot = null;
   saveTasks();
   renderTasks();
 
@@ -432,8 +585,19 @@ function addTask(description) {
  * Should be called once from the DOMContentLoaded bootstrap block.
  */
 function initTodoUI() {
-  const addBtn   = document.getElementById('task-add-btn');
-  const inputEl  = document.getElementById('task-input');
+  const addBtn = document.getElementById('task-add-btn');
+  const inputEl = document.getElementById('task-input');
+  const sortBtn = document.getElementById('task-sort-btn');
+
+  if (sortBtn) {
+    sortBtn.addEventListener('click', () => {
+      sortedTasksSnapshot = [...tasks].sort((a, b) => {
+        return Number(a.completed) - Number(b.completed);
+      });
+
+      renderTasks();
+    });
+  }
 
   if (addBtn) {
     addBtn.addEventListener('click', () => {
@@ -601,17 +765,49 @@ function toggleComplete(taskId) {
  *
  * @param {string} taskId
  */
+// function deleteTask(taskId) {
+//   if (pendingDeletes.has(taskId)) return;
+
+//   const timeoutId = setTimeout(() => {
+//     tasks = tasks.filter(t => t.id !== taskId);
+//     saveTasks();
+//     renderTasks();
+//     pendingDeletes.delete(taskId);
+//   }, DELETE_UNDO_MS);
+
+//   pendingDeletes.set(taskId, timeoutId);
+//   renderTasks();
+// }
+
 function deleteTask(taskId) {
   if (pendingDeletes.has(taskId)) return;
 
-  const timeoutId = setTimeout(() => {
+  const pending = {
+    timeoutId: null,
+    intervalId: null,
+    remaining: DELETE_UNDO_MS / 1000
+  };
+
+  pending.intervalId = setInterval(() => {
+    const p = pendingDeletes.get(taskId);
+    if (!p) return;
+
+    p.remaining -= 1;
+    renderTasks();
+
+    if (p.remaining <= 0) {
+      clearInterval(p.intervalId);
+    }
+  }, 1000);
+
+  pending.timeoutId = setTimeout(() => {
     tasks = tasks.filter(t => t.id !== taskId);
     saveTasks();
-    renderTasks();
     pendingDeletes.delete(taskId);
+    renderTasks();
   }, DELETE_UNDO_MS);
 
-  pendingDeletes.set(taskId, timeoutId);
+  pendingDeletes.set(taskId, pending);
   renderTasks();
 }
 
@@ -621,10 +817,16 @@ function deleteTask(taskId) {
  * @param {string} taskId
  */
 function undoDelete(taskId) {
-  const timeoutId = pendingDeletes.get(taskId);
-  clearTimeout(timeoutId);
+
+  const pending = pendingDeletes.get(taskId);
+  if (!pending) return;
+
+  clearTimeout(pending.timeoutId);
+  clearInterval(pending.intervalId);
+
   pendingDeletes.delete(taskId);
   renderTasks();
+
 }
 
 // ============================================================
@@ -691,8 +893,8 @@ function renderQuickLinks() {
  */
 function addQuickLink(label, url) {
   const trimmedLabel = label.trim();
-  const trimmedUrl   = url.trim();
-  const errorEl      = document.getElementById('ql-input-error');
+  const trimmedUrl = url.trim();
+  const errorEl = document.getElementById('ql-input-error');
 
   if (trimmedLabel.length === 0 || trimmedUrl.length === 0) {
     if (errorEl) {
@@ -740,9 +942,9 @@ function addQuickLink(label, url) {
   renderQuickLinks();
 
   const labelInput = document.getElementById('ql-label-input');
-  const urlInput   = document.getElementById('ql-url-input');
+  const urlInput = document.getElementById('ql-url-input');
   if (labelInput) labelInput.value = '';
-  if (urlInput)   urlInput.value   = '';
+  if (urlInput) urlInput.value = '';
 
   if (errorEl) {
     errorEl.setAttribute('hidden', '');
@@ -789,15 +991,15 @@ function openQuickLink(url) {
  * Should be called once from the DOMContentLoaded bootstrap block.
  */
 function initQuickLinksUI() {
-  const addBtn     = document.getElementById('ql-add-btn');
+  const addBtn = document.getElementById('ql-add-btn');
   const labelInput = document.getElementById('ql-label-input');
-  const urlInput   = document.getElementById('ql-url-input');
+  const urlInput = document.getElementById('ql-url-input');
 
   if (addBtn) {
     addBtn.addEventListener('click', () => {
       addQuickLink(
         labelInput ? labelInput.value : '',
-        urlInput   ? urlInput.value   : ''
+        urlInput ? urlInput.value : ''
       );
     });
   }
@@ -873,6 +1075,10 @@ if (typeof jasmine !== 'undefined') {
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 0. User name
+  initUsername();
+  initTheme();
+
   // 1. Load persisted data
   loadTasks();
   loadQuickLinks();
@@ -881,6 +1087,7 @@ document.addEventListener('DOMContentLoaded', () => {
   startClock();
 
   // 3. Initialise the Focus Timer
+  loadTimerSettings();
   initTimer();
   initTimerUI();
 

@@ -253,7 +253,7 @@ section {
 }
 
 #timer-reset {
-  background-color: #e2e8f0;
+  background-color: #9fa2a5;
   color: var(--color-text);
 }
 
@@ -562,4 +562,27 @@ button {
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+/** Dark Mode **/
+body.dark-mode {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-text: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-border: #475569;
+}
+
+#theme-toggle {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.pending-delete-label {
+  color: orange;
+  font-size: 12px;
+  font-style: italic;
 }
