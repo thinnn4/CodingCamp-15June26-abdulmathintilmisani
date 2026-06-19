@@ -112,10 +112,10 @@ function loadQuickLinks() {
  * @returns {"Good Morning"|"Good Afternoon"|"Good Evening"|"Good Night"}
  */
 function getGreeting(hour) {
-  if (hour >= 5 && hour <= 11) return 'Good Morning';
-  if (hour >= 12 && hour <= 17) return 'Good Afternoon';
-  if (hour >= 18 && hour <= 20) return 'Good Evening';
-  return 'Good Night'; // covers 21–23 and 0–4
+  if (hour >= 5 && hour <= 11) return 'Guten Morgen';
+  if (hour >= 12 && hour <= 17) return 'Guten Tag';
+  if (hour >= 18 && hour <= 20) return 'Guten Abend';
+  return 'Gute Nacht'; // covers 21–23 and 0–4
 }
 
 /**
