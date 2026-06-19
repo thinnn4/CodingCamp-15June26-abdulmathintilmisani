@@ -421,6 +421,7 @@ function initTimerUI() {
  * @returns {HTMLLIElement}
  */
 function createTaskRow(task) {
+  const isLocked = pendingDeletes.has(task.id);
   const li = document.createElement('li');
 
   if (task.completed) {
@@ -486,6 +487,13 @@ function createTaskRow(task) {
     deleteBtn.dataset.action = 'delete';
     deleteBtn.dataset.taskId = task.id;
     deleteBtn.textContent = 'Delete';
+
+    if (isLocked) {
+      checkbox.disabled = true;
+      editBtn.disabled = true;
+      deleteBtn.disabled = true;
+      li.classList.add('locked');
+    }
 
     li.appendChild(checkbox);
     li.appendChild(descSpan);
@@ -658,6 +666,7 @@ function initTodoUI() {
  * @param {string} taskId
  */
 function beginEditTask(taskId) {
+  if (isPending(taskId)) return;
   if (editingTaskId !== null) {
     cancelEditTask();
   }
@@ -693,6 +702,7 @@ function beginEditTask(taskId) {
  * @param {string} newText - Raw value from the inline input
  */
 function confirmEditTask(taskId, newText) {
+  if (isPending(taskId)) return;
   const trimmed = newText.trim();
 
   if (trimmed.length === 0) {
@@ -728,32 +738,48 @@ function cancelEditTask() {
  *
  * @param {string} taskId
  */
+
+function isPending(taskId) {
+  return pendingDeletes.has(taskId);
+}
+
+// function toggleComplete(taskId) {
+//   const task = tasks.find(t => t.id === taskId);
+//   if (!task) return;
+
+//   task.completed = !task.completed;
+
+//   try {
+//     saveTasks();
+//     renderTasks();
+//   } catch (e) {
+//     // Revert the flip so in-memory state stays consistent with storage
+//     task.completed = !task.completed;
+//     renderTasks();
+
+//     // Show inline error near the task row
+//     const taskList = document.getElementById('task-list');
+//     if (taskList) {
+//       const li = taskList.querySelector(`[data-task-id="${taskId}"]`);
+//       if (li) {
+//         const errorSpan = document.createElement('span');
+//         errorSpan.className = 'task-error';
+//         errorSpan.textContent = 'Could not save — please try again';
+//         li.closest('li').appendChild(errorSpan);
+//       }
+//     }
+//   }
+// }
+
 function toggleComplete(taskId) {
+  if (isPending(taskId)) return;
+
   const task = tasks.find(t => t.id === taskId);
   if (!task) return;
 
   task.completed = !task.completed;
-
-  try {
-    saveTasks();
-    renderTasks();
-  } catch (e) {
-    // Revert the flip so in-memory state stays consistent with storage
-    task.completed = !task.completed;
-    renderTasks();
-
-    // Show inline error near the task row
-    const taskList = document.getElementById('task-list');
-    if (taskList) {
-      const li = taskList.querySelector(`[data-task-id="${taskId}"]`);
-      if (li) {
-        const errorSpan = document.createElement('span');
-        errorSpan.className = 'task-error';
-        errorSpan.textContent = 'Could not save — please try again';
-        li.closest('li').appendChild(errorSpan);
-      }
-    }
-  }
+  saveTasks();
+  renderTasks();
 }
 
 /**

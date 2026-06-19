@@ -586,3 +586,20 @@ body.dark-mode {
   font-size: 12px;
   font-style: italic;
 }
+
+.locked {
+  opacity: 0.5;
+}
+
+#task-list li button:disabled,
+#task-list li input[type="checkbox"]:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+#task-list li button:disabled:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
