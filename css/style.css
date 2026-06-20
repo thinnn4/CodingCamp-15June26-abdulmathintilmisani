@@ -587,10 +587,6 @@ body.dark-mode {
   font-style: italic;
 }
 
-.locked {
-  opacity: 0.5;
-}
-
 #task-list li button:disabled,
 #task-list li input[type="checkbox"]:disabled {
   opacity: 0.4;

@@ -428,10 +428,6 @@ function createTaskRow(task) {
     li.classList.add('completed');
   }
 
-  // if (pendingDeletes.has(task.id)) {
-  //   li.classList.add('pending-delete');
-  // }
-
   if (pendingDeletes.has(task.id)) {
 
     const pending = pendingDeletes.get(task.id);
@@ -743,34 +739,6 @@ function isPending(taskId) {
   return pendingDeletes.has(taskId);
 }
 
-// function toggleComplete(taskId) {
-//   const task = tasks.find(t => t.id === taskId);
-//   if (!task) return;
-
-//   task.completed = !task.completed;
-
-//   try {
-//     saveTasks();
-//     renderTasks();
-//   } catch (e) {
-//     // Revert the flip so in-memory state stays consistent with storage
-//     task.completed = !task.completed;
-//     renderTasks();
-
-//     // Show inline error near the task row
-//     const taskList = document.getElementById('task-list');
-//     if (taskList) {
-//       const li = taskList.querySelector(`[data-task-id="${taskId}"]`);
-//       if (li) {
-//         const errorSpan = document.createElement('span');
-//         errorSpan.className = 'task-error';
-//         errorSpan.textContent = 'Could not save — please try again';
-//         li.closest('li').appendChild(errorSpan);
-//       }
-//     }
-//   }
-// }
-
 function toggleComplete(taskId) {
   if (isPending(taskId)) return;
 
@@ -791,19 +759,6 @@ function toggleComplete(taskId) {
  *
  * @param {string} taskId
  */
-// function deleteTask(taskId) {
-//   if (pendingDeletes.has(taskId)) return;
-
-//   const timeoutId = setTimeout(() => {
-//     tasks = tasks.filter(t => t.id !== taskId);
-//     saveTasks();
-//     renderTasks();
-//     pendingDeletes.delete(taskId);
-//   }, DELETE_UNDO_MS);
-
-//   pendingDeletes.set(taskId, timeoutId);
-//   renderTasks();
-// }
 
 function deleteTask(taskId) {
   if (pendingDeletes.has(taskId)) return;
